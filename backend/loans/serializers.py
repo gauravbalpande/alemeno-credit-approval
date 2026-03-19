@@ -110,9 +110,8 @@ class CheckEligibilitySerializer(serializers.Serializer):
             "approval": approval,
             "interest_rate": interest_rate,
             "corrected_interest_rate": corrected_interest_rate,
+            "tenure": tenure,
             "monthly_installment": monthly_installment,
-            "credit_score": score_result.get("score", 0),
-            "message": score_result.get("reason"),
         }
 
 
@@ -121,7 +120,7 @@ class CreateLoanSerializer(CheckEligibilitySerializer):
         evaluation = self.evaluate()
         if not evaluation["approval"]:
             raise serializers.ValidationError(
-                {"non_field_errors": ["Loan not approved based on eligibility rules."]}
+                {"message": "Loan not approved based on eligibility rules."}
             )
 
         customer: Customer = validated_data["customer"]

@@ -26,6 +26,9 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 class RegisterCustomerSerializer(serializers.ModelSerializer):
+    
+    monthly_income = serializers.FloatField(source="monthly_salary")
+
     class Meta:
         model = Customer
         fields = [
@@ -33,7 +36,7 @@ class RegisterCustomerSerializer(serializers.ModelSerializer):
             "last_name",
             "age",
             "phone_number",
-            "monthly_salary",
+            "monthly_income",
         ]
 
     def create(self, validated_data):

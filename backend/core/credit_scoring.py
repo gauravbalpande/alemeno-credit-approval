@@ -46,11 +46,13 @@ def compute_credit_score(
 ) -> dict:
     today = today or date.today()
 
-    total_current_loans = sum(l.loan_amount for l in customer_loans)
+    loans = list(customer_loans)
+
+    total_current_loans = sum(l.loan_amount for l in loans)
     total_active_loan_amount = sum(
-        l.loan_amount for l in customer_loans if l.start_date <= today <= l.end_date
+        l.loan_amount for l in loans if l.start_date <= today <= l.end_date
     )
-    total_emis = sum(l.monthly_repayment for l in customer_loans)
+    total_emis = sum(l.monthly_repayment for l in loans)
 
     if total_current_loans > approved_limit:
         return {
@@ -69,8 +71,8 @@ def compute_credit_score(
     score = 100
 
     # Past loans paid on time
-    total_emis_possible = sum(l.tenure for l in customer_loans) or 1
-    total_emis_on_time = sum(l.emis_paid_on_time for l in customer_loans)
+    total_emis_possible = sum(l.tenure for l in loans) or 1
+    total_emis_on_time = sum(l.emis_paid_on_time for l in loans)
     on_time_ratio = total_emis_on_time / total_emis_possible
     if on_time_ratio < 0.5:
         score -= 30
@@ -78,7 +80,7 @@ def compute_credit_score(
         score -= 15
 
     # Number of loans taken
-    num_loans = len(list(customer_loans))
+    num_loans = len(loans)
     if num_loans > 5:
         score -= 20
     elif num_loans > 2:
@@ -86,7 +88,7 @@ def compute_credit_score(
 
     # Loan activity in current year
     current_year_loans = [
-        l for l in customer_loans if l.start_date.year == today.year
+        l for l in loans if l.start_date.year == today.year
     ]
     if len(current_year_loans) > 3:
         score -= 10

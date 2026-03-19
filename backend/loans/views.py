@@ -31,29 +31,36 @@ class CreateLoanView(APIView):
                 return Response(
                     {"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST
                 )
-            data = LoanSerializer(loan).data
-            data.update(
+            return Response(
                 {
-                    "approval": evaluation["approval"],
-                    "interest_rate": evaluation["interest_rate"],
-                    "corrected_interest_rate": evaluation["corrected_interest_rate"],
+                    "loan_id": loan.loan_id,
+                    "customer_id": loan.customer_id,
+                    "loan_approved": True,
+                    "message": "Loan approved",
                     "monthly_installment": evaluation["monthly_installment"],
-                    "credit_score": evaluation["credit_score"],
-                }
+                },
+                status=status.HTTP_201_CREATED,
             )
-            return Response(data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ViewLoanDetail(APIView):
     def get(self, request, loan_id: int, *args, **kwargs):
         loan = get_object_or_404(Loan, pk=loan_id)
-        loan_data = LoanSerializer(loan).data
-        customer_data = CustomerSerializer(loan.customer).data
         return Response(
             {
-                "loan": loan_data,
-                "customer": customer_data,
+                "loan_id": loan.loan_id,
+                "customer": {
+                    "customer_id": loan.customer.customer_id,
+                    "first_name": loan.customer.first_name,
+                    "last_name": loan.customer.last_name,
+                    "phone_number": loan.customer.phone_number,
+                    "age": loan.customer.age,
+                },
+                "loan_amount": loan.loan_amount,
+                "interest_rate": loan.interest_rate,
+                "monthly_installment": loan.monthly_repayment,
+                "tenure": loan.tenure,
             }
         )
 
@@ -67,9 +74,15 @@ class ViewCustomerLoans(APIView):
                 loan.tenure - loan.emis_paid_on_time,
                 0,
             )
-            loan_data = LoanSerializer(loan).data
-            loan_data["repayments_left"] = repayments_left
-            serialized_loans.append(loan_data)
+            serialized_loans.append(
+                {
+                    "loan_id": loan.loan_id,
+                    "loan_amount": loan.loan_amount,
+                    "interest_rate": loan.interest_rate,
+                    "monthly_installment": loan.monthly_repayment,
+                    "repayments_left": repayments_left,
+                }
+            )
 
         return Response(serialized_loans, status=status.HTTP_200_OK)
 

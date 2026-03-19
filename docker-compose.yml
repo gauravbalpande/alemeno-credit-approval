@@ -19,9 +19,10 @@ services:
 
   web:
     build: .
-    command: gunicorn credit_system.wsgi:application --bind 0.0.0.0:8000
+    command: sh /app/backend/scripts/start-web.sh
     volumes:
       - ./backend:/app/backend
+      - ./data:/app/backend/data
     env_file:
       - .env
     depends_on:
@@ -35,6 +36,7 @@ services:
     command: celery -A credit_system worker -l info
     volumes:
       - ./backend:/app/backend
+      - ./data:/app/backend/data
     env_file:
       - .env
     depends_on:
